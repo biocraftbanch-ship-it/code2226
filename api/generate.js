@@ -1,17 +1,12 @@
+// api/generate.js (最終安定版)
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     const { prompt, systemInstruction } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-        return res.status(500).json({ error: 'BMA API Key not configured.' });
-    }
-
-    // --- 修正ポイント：v1beta から v1 へ変更 ---
-    const baseUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
+    // ここでモデル名を "gemini-1.5-flash" に固定し、URLを v1beta に戻します
+    const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
     try {
         const response = await fetch(`${baseUrl}?key=${apiKey}`, {
@@ -23,19 +18,11 @@ export default async function handler(req, res) {
             })
         });
 
-        // Googleからのレスポンスを詳しくチェック
         const data = await response.json();
-
-        if (!response.ok) {
-            console.error('Google API Debug:', data);
-            return res.status(response.status).json({ error: data.error?.message || 'BMA Central Link Error' });
-        }
+        if (!response.ok) return res.status(response.status).json({ error: data.error?.message });
         
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "応答を復元できませんでした。";
-        res.status(200).json({ text: aiText });
-
+        res.status(200).json({ text: data.candidates?.[0]?.content?.parts?.[0]?.text });
     } catch (error) {
-        console.error('Fetch Error:', error);
-        res.status(500).json({ error: 'Mission Failed: Terminal Connection Lost' });
+        res.status(500).json({ error: 'BMA Server Error' });
     }
 }
