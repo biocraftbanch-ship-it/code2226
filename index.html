@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODE 2226: 大気保存官 プロトコル (AI Enhanced)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Inter:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bma-accent: #a3e635;
+            --bma-bg: #0a0a0a;
+            --bma-panel: #141414;
+            --bma-text: #e2e8f0;
+        }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #000;
+            color: var(--bma-text);
+            overflow: hidden;
+        }
+        .slide {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            padding: 4rem;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            position: relative;
+        }
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .slide::after {
+            content: "BMA OFFICIAL PROTOCOL // MISSION CODE 2226 // SECURE LINK";
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--bma-accent);
+            opacity: 0.5;
+            letter-spacing: 0.2rem;
+        }
+        .bma-border {
+            border-left: 4px solid var(--bma-accent);
+            padding-left: 1.5rem;
+        }
+        .glossary-card {
+            background: rgba(163, 230, 53, 0.05);
+            border: 1px solid rgba(163, 230, 53, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .formula {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--bma-accent);
+        }
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(163, 230, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        .nav-btn:hover {
+            background: var(--bma-accent);
+            color: black;
+        }
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--bma-accent);
+            transition: width 0.3s;
+            z-index: 100;
+        }
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+        .ai-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(163, 230, 53, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            width: 100%;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .ai-input:focus {
+            border-color: var(--bma-accent);
+        }
+        .ai-button {
+            background: var(--bma-accent);
+            color: black;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .ai-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .ai-result {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed var(--bma-accent);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            min-height: 120px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #daffde;
+        }
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            40% { color: var(--bma-accent); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            60% { text-shadow: .25em 0 0 var(--bma-accent), .5em 0 0 rgba(0,0,0,0); }
+            80%, 100% { text-shadow: .25em 0 0 var(--bma-accent), .5em 0 0 var(--bma-accent); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    <div class="slide-counter" id="slideCounter">1 / 14</div>
+
+    <div class="slide active" id="slide1">
+        <div class="text-center">
+            <p class="formula mb-4 tracking-[0.5rem] animate-pulse">[ SECURE ACCESS ESTABLISHED ]</p>
+            <h1 class="text-8xl font-bold tracking-tighter mb-6">CODE <span style="color: var(--bma-accent);">2226</span></h1>
+            <p class="text-2xl font-light tracking-[0.3rem] uppercase opacity-80">Restoring The Lost Terra</p>
+            <div class="mt-12 h-1 w-24 bg-[#a3e635] mx-auto"></div>
+            <p class="mt-8 text-sm opacity-50 font-light">西暦2226年 記憶考古学局 公開版プロトコル</p>
+        </div>
+    </div>
+
+    <div class="slide" id="slide2">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">ようこそ、ラボへ</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p class="text-xl leading-relaxed">
+                        皆さんは本日、未来の研究機関である<span class="text-[#a3e635] font-bold">BMA</span>の特別研究員として招集されました。
+                    </p>
+                    <p class="text-lg opacity-80 font-light">
+                        西暦2226年、すべてが滅菌された無機質なコロニーにおいて、私たちの任務は失われた「地球の匂い」を200年後の未来へ届けることです。
+                    </p>
+                    <div class="glossary-card">
+                        <p class="text-sm"><strong>BMA:</strong> 未来の研究機関「記憶考古学局」の略。未来において失われた地球の記憶を収集・研究する組織です。</p>
+                    </div>
+                </div>
+                <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-microscope text-6xl opacity-20"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide3">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">なぜ「香り」なのか</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-brain text-6xl opacity-20"></i>
+                </div>
+                <div class="space-y-6">
+                    <p class="text-xl font-light">香りは、200年前の魂を呼び覚ますための最短距離の近道です。</p>
+                    <div class="glossary-card">
+                        <p class="text-sm italic"><strong>バイパス:</strong> 最短距離の近道。嗅覚が思考（理性）を通らず、記憶や感情に直接届く仕組み。</p>
+                    </div>
+                    <div class="glossary-card">
+                        <p class="text-sm"><strong>OFC (眼窩前頭皮質):</strong> 脳の眉間の奥にある、ものごとの「価値」を判断するセンター。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide4">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">1. タブ粉</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p class="text-2xl text-[#a3e635] font-bold">大地の基盤（Soil Code）</p>
+                    <p class="text-lg leading-relaxed font-light">
+                        記憶を繋ぎ止める「ハードディスク」。バラバラの情報を一つにする魔法のキャンバスです。
+                    </p>
+                    <div class="bg-white/5 p-4 rounded border border-white/10">
+                        <p class="text-sm"><span class="formula">多糖類 (Polysaccharides)</span><br>
+                        植物が作り出した天然の接着剤。香りの分子をギュッと抱きしめます。</p>
+                    </div>
+                </div>
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-mountain text-6xl opacity-20"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide5">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">2. シナモン</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-fire text-6xl opacity-20"></i>
+                </div>
+                <div class="space-y-6">
+                    <p class="text-2xl text-[#a3e635] font-bold">文明の温もり（Heat Code）</p>
+                    <p class="formula text-xl">C9H8O (Cinnamaldehyde)</p>
+                    <p class="text-lg leading-relaxed font-light">
+                        炭素の連鎖に、かつての人類が抱いた熱情のコードが刻まれています。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide6">
+        <div class="max-w-5xl mx-auto grid grid-cols-2 gap-12">
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold text-[#a3e635]">3. 柑橘の皮</h3>
+                <p class="formula">C10H16 (Limonene)</p>
+                <p class="text-lg font-light">太陽光をたっぷり蓄えた天然のバッテリー。一瞬で脳を覚醒させる「光のデータ」です。</p>
+                <div class="h-48 rounded bg-gray-900 border border-white/10 flex items-center justify-center mt-4">
+                    <i class="fa-solid fa-sun text-4xl opacity-20"></i>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold text-[#a3e635]">4. 金木犀</h3>
+                <p class="formula">C11H20O2 (Gamma-Undecalactone)</p>
+                <p class="text-lg font-light">大気が冷えた時にだけ発信される季節のパルス。未来には失われた「秋」の信号です。</p>
+                <div class="h-48 rounded bg-gray-900 border border-white/10 flex items-center justify-center mt-4">
+                    <i class="fa-solid fa-leaf text-4xl opacity-20"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide7">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">5. コーヒー</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p class="text-2xl text-[#a3e635] font-bold">都市の鼓動（Urban Residue）</p>
+                    <p class="formula text-xl">C8H10N4O2 (Caffeine)</p>
+                    <p class="text-lg leading-relaxed font-light">
+                        かつての人々が活動を加速させるために摂取していた、活気の残渣（ざんさ）。街並みのざわめきを復元します。
+                    </p>
+                </div>
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-mug-hot text-6xl opacity-20"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide8">
+        <div class="max-w-5xl mx-auto text-center">
+            <p class="formula mb-4 text-[#a3e635]">PHASE ALPHA</p>
+            <h2 class="text-6xl font-bold mb-8">STEP 1: 初期スキャン</h2>
+            <div class="grid grid-cols-2 gap-12 text-left">
+                <div>
+                    <p class="text-xl mb-6 font-light">理性をシャットダウンせよ。<br>脳内に再生される200年前の「失われた景色」を入力してください。</p>
+                    <textarea id="visionInput" class="ai-input h-32" placeholder="例：雨上がりのアスファルトの匂い、夕暮れの公園のざわめき..."></textarea>
+                    <button id="analyzeVisionBtn" class="ai-button" onclick="restorationAI.analyzeVision()">✨ 記憶データを解析</button>
+                </div>
+                <div>
+                    <div id="visionResult" class="ai-result font-light">
+                        [ SECURE BMA LINK READY ]<br>
+                        研究員によるデータ入力を待機中...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide9">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">STEP 2: 記憶のデクリプション</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p class="text-xl font-light">熱と蒸気によって、化石化した素材から「魂」を解き放ちます。</p>
+                    <div class="glossary-card"><p class="text-sm"><strong>デクリプション:</strong> 暗号化されたデータを読み解くこと。</p></div>
+                    <div class="glossary-card"><p class="text-sm"><strong>相転移:</strong> 物質の状態が劇的に変化すること。雫の一滴は姿を変えた「時間」です。</p></div>
+                </div>
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-flask-vial text-6xl opacity-20"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide10">
+        <div class="max-w-5xl mx-auto text-center">
+            <p class="formula mb-4 text-[#a3e635]">PHASE BETA</p>
+            <h2 class="text-6xl font-bold mb-12">STEP 3: 秩序を編む</h2>
+            <div class="max-w-3xl mx-auto space-y-8">
+                <p class="text-2xl font-light leading-relaxed">
+                    宇宙の無秩序化の流れに抗い、境界線を作る行為。<br>それが、カプセルの中に世界を再構築するミッションです。
+                </p>
+                <div class="glossary-card text-left">
+                    <p class="text-sm italic"><strong>エントロピー:</strong> 「物事は放っておくとバラバラになる」という法則。これに抗うのが生命の営みです。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide11">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-12 bma-border">記憶の再起動</h2>
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-gray-900 aspect-video flex items-center justify-center">
+                    <i class="fa-solid fa-jar text-6xl opacity-20"></i>
+                </div>
+                <div class="space-y-6">
+                    <p class="text-xl">タブ粉というキャンバスに地層を重ね、水を滴下します。</p>
+                    <div class="h-1 w-full bg-[#a3e635]/20 rounded-full mt-6">
+                        <div class="h-full bg-[#a3e635] w-[75%] rounded-full animate-pulse"></div>
+                    </div>
+                    <p class="formula text-xs mt-2 opacity-60 uppercase tracking-widest">Archiving Data... 75% Complete</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide12">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-5xl font-bold mb-8 bma-border">STEP 4: 未来オークション</h2>
+            <div class="grid grid-cols-2 gap-12">
+                <div class="space-y-4">
+                    <p class="text-lg font-light">復元されたバイオーム・カプセルの名称を入力してください。</p>
+                    <input type="text" id="capsuleName" class="ai-input" placeholder="例：失われた日曜日の午睡">
+                    <button id="generatePitchBtn" class="ai-button" onclick="restorationAI.generatePitch()">✨ 価値評価プレゼン生成</button>
+                    
+                    <div class="mt-8">
+                        <div class="flex items-center gap-6 mb-4">
+                            <div class="w-1/3 text-right text-xs uppercase opacity-60">Estimated Value</div>
+                            <div class="flex-grow bg-white/5 h-8 rounded-full overflow-hidden flex items-center pr-4">
+                                <div id="aiPriceBar" class="bg-[#a3e635] h-full w-[20%] flex items-center justify-end px-4 text-black font-bold text-xs transition-all duration-1000">--- CREDITS</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="pitchResult" class="ai-result font-light">
+                    [ BMA MARKET SIMULATOR ]<br>
+                    作品名を入力して、未来コロニーでの需要予測をシミュレートしてください。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide13">
+        <div class="text-center max-w-4xl mx-auto">
+            <p class="text-9xl text-[#a3e635] font-serif leading-none mb-4 opacity-20">“</p>
+            <h2 class="text-5xl font-bold leading-tight mb-12">
+                生命とは、宇宙の無秩序の流れに抗い、境界線を作る行為である。
+            </h2>
+            <p class="text-2xl font-light opacity-80">— エルヴィン・シュレディンガー『生命とは何か』(1944)</p>
+        </div>
+    </div>
+
+    <div class="slide" id="slide14">
+        <div class="text-center max-w-4xl mx-auto space-y-12">
+            <h2 class="text-7xl font-bold text-[#a3e635]">Welcome back to 2026</h2>
+            <p class="text-2xl leading-relaxed font-light">
+                お帰りなさい、2026年の皆さん。<br>今日から皆さんは、この奇跡の大気を守る<span class="font-bold border-b-2 border-[#a3e635]">「大気保存官」</span>です。
+            </p>
+            <p class="formula tracking-[1rem] opacity-30 mt-12">[ SYSTEM OFFLINE ]</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="nav-btn" onclick="move(-1)">PREV</button>
+        <button class="nav-btn" onclick="move(1)">NEXT</button>
+    </div>
+
+    <script>
+        // --- Navigation Logic ---
+        let currentSlide = 1;
+        const totalSlides = 14;
+
+        function updateUI() {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((s, idx) => {
+                s.classList.toggle('active', idx + 1 === currentSlide);
+            });
+            document.getElementById('progressBar').style.width = ((currentSlide - 1) / (totalSlides - 1)) * 100 + '%';
+            document.getElementById('slideCounter').innerText = currentSlide + ' / ' + totalSlides;
+            window.location.hash = currentSlide;
+        }
+
+        function move(n) {
+            currentSlide += n;
+            if (currentSlide > totalSlides) currentSlide = 1;
+            if (currentSlide < 1) currentSlide = totalSlides;
+            updateUI();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') move(1);
+            if (e.key === 'ArrowLeft') move(-1);
+        });
+
+        window.addEventListener('load', updateUI);
+
+        // --- Gemini API Secure Proxy Implementation ---
+        const restorationAI = {
+            // APIキーはここには書きません。Vercelのバックエンド関数を呼び出します。
+            endpoint: "/api/generate", 
+
+            async callGemini(prompt, systemInstruction) {
+                try {
+                    const response = await fetch(this.endpoint, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ prompt, systemInstruction })
+                    });
+                    
+                    if (!response.ok) throw new Error(`BMA Link Failure: ${response.status}`);
+                    const result = await response.json();
+                    return result.text;
+                } catch (error) {
+                    console.error("Transmission Error:", error);
+                    throw error;
+                }
+            },
+
+            async analyzeVision() {
+                const input = document.getElementById('visionInput').value;
+                const resultDiv = document.getElementById('visionResult');
+                const btn = document.getElementById('analyzeVisionBtn');
+                if (!input.trim()) return;
+
+                btn.disabled = true;
+                resultDiv.innerHTML = '<span class="loading-dots">Comparing with BMA Database</span>';
+                const systemPrompt = "あなたは西暦2226年のBMAのAIです。2026年の記述に対し、考古学的な分析を150文字程度で、冷静かつ詩的に作成してください。文末に推定地域・季節を添えてください。";
+
+                try {
+                    const text = await this.callGemini(input, systemPrompt);
+                    resultDiv.innerText = text || "[ DATA CORRUPTED ]";
+                } catch (e) {
+                    resultDiv.innerText = "[ ERROR ]: バックエンドとの通信に失敗しました。API設定を確認してください。";
+                } finally { btn.disabled = false; }
+            },
+
+            async generatePitch() {
+                const input = document.getElementById('capsuleName').value;
+                const resultDiv = document.getElementById('pitchResult');
+                const btn = document.getElementById('generatePitchBtn');
+                const priceBar = document.getElementById('aiPriceBar');
+                if (!input.trim()) return;
+
+                btn.disabled = true;
+                resultDiv.innerHTML = '<span class="loading-dots">Simulating Market Demand</span>';
+                const systemPrompt = "あなたは西暦2226年の市場オークショニアです。作品名から未来の富裕層に響く情緒的な価値を100文字程度で論評してください。";
+
+                try {
+                    const text = await this.callGemini(input, systemPrompt);
+                    resultDiv.innerText = text || "[ LINK ERROR ]";
+                    const randomPrice = Math.floor(Math.random() * 2000000) + 500000;
+                    priceBar.style.width = Math.min((randomPrice / 2500000) * 100, 100) + "%";
+                    priceBar.innerText = randomPrice.toLocaleString() + " CREDITS";
+                } catch (e) {
+                    resultDiv.innerText = "[ ERROR ]: 市場シミュレータに接続できません。";
+                } finally { btn.disabled = false; }
+            }
+        };
+    </script>
+</body>
+</html>
